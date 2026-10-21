@@ -1,7 +1,7 @@
 ---
 name: java-backend
 description: Write, refactor and review Java/Spring Boot backend code following hexagonal architecture, constructor injection, JUnit 5 + AssertJ testing and explicit error handling.
-version: 0.2.0
+version: 0.2.1
 tags: [java, backend, spring, guidelines]
 ---
 
@@ -17,13 +17,13 @@ so automation (CI, bots) can validate requests against the rules.
 
 ## Language & Version
 
-- Java 21 (minimum)
+- Java 25 (minimum)
 - Prefer modern Java features: records, sealed classes, switch expressions
 - Avoid deprecated APIs and internal JDK APIs
 
 ## Build tools (examples)
 
-- Gradle: use Gradle 8.x+
+- Gradle: use Gradle 9.x+
 - Maven: use Maven 3.8+
 
 ---
@@ -147,7 +147,7 @@ Example output schema (JSON):
 
 ## Concurrency and Threading
 
-- Prefer Java 21 concurrency idioms over manual thread management.
+- Prefer Java 25 concurrency idioms over manual thread management.
 - Use virtual threads for large numbers of blocking tasks:
   - `Executors.newVirtualThreadPerTaskExecutor()`
 - Prefer structured concurrency for grouped task scopes:
@@ -456,7 +456,7 @@ public class UserRepositoryAdapter implements UserGateway {
 
 Add a GitHub Actions job `.github/workflows/java-ci.yml` to run:
 
-- JDK 21
+- JDK 25
 - Build (Gradle/Maven)
 - Run `./gradlew check` or `mvn -DskipTests=false verify`
 
@@ -470,11 +470,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "25"
       - name: Build and test (Gradle)
         run: ./gradlew build --no-daemon
 ```
@@ -531,4 +531,5 @@ class ArchitectureTest {
 
 ## Change log
 
+- 0.2.1: Target Java 25 and Gradle 9.x for this project
 - 0.2.0: Added metadata, machine-readable fields, examples, CI skeleton

@@ -1,7 +1,7 @@
 ---
 name: security
 description: Apply backend and frontend security practices covering OWASP Top 10, input validation, authn/authz, secrets management, secure headers, SCA/SAST/DAST scanning and a security PR checklist.
-version: 0.2.0
+version: 0.2.1
 tags: [security, backend, frontend, best-practices]
 ---
 
@@ -356,6 +356,7 @@ void forbidsCrossTenantAccess() throws Exception {
 - [ ] **A08 Integrity failures** — dependency verification, signed images, no untrusted deserialization
 - [ ] **A09 Logging failures** — security events logged, PII and tokens redacted
 - [ ] **A10 SSRF** — outbound URLs from user input use an allowlist
+- [ ] Secret scanning clean (gitleaks/trufflehog in pre-commit and CI); no secrets in the diff or history
 - [ ] Security tests added (401/403/IDOR regression)
 
 ---
@@ -376,5 +377,6 @@ void forbidsCrossTenantAccess() throws Exception {
 
 ## Change log
 
+- 0.2.1: Added an explicit secret-scanning item to the PR checklist
 - 0.2.0: Spring Boot 4 / Spring Security 7 specifics (filter chain, JWT audience, Argon2id, actuator chain, CORS), secret scanning, API hardening (SSRF, XXE, mass assignment, limits), Gradle supply chain, security tests, virtual-thread context propagation, checklist mapped to OWASP Top 10, frontend section made conditional
 - 0.1.0: Initial version

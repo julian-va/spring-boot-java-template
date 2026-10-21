@@ -28,3 +28,8 @@ Adding the Boot 3 names pulls in a duplicate legacy stack.
 
 - JDK 25 is pinned via `java.toolchain`. It must already be installed (SDKMAN `current` here); `settings.gradle.kts` has no foojay toolchain resolver, so Gradle fails the build rather than downloading a JDK.
 - Lombok is wired for main *and* test annotation processing (`compileOnly`/`annotationProcessor` plus the `test*` variants). Any new annotation processor needs the same four entries or tests won't compile.
+
+## Skills
+
+- Project skills live in `.opencode/skills/<id>/SKILL.md`. The directory name is the skill ID and the frontmatter needs a `description`, or OpenCode registers the skill but never advertises it.
+- Validate skill frontmatter before committing. A `: ` (colon-space) inside an unquoted value is invalid YAML: GitHub rejects the whole file with "mapping values are not allowed in this context", while OpenCode's lenient parser accepts it, so the mistake passes locally and only fails on GitHub.

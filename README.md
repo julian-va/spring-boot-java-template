@@ -52,7 +52,7 @@ Run a single test class:
 
 ```text
 src/main/java/jvacloud/spring_boot_java_template/   application entry point
-src/main/resources/application.yaml                 app config (name only)
+src/main/resources/application.yaml                 app config (name, virtual threads)
 src/test/java/...                                   JUnit 5 context test
 .opencode/skills/java-backend/SKILL.md              hexagonal architecture and Java conventions
 .opencode/skills/security/SKILL.md                  security practices and PR checklist
@@ -62,6 +62,7 @@ AGENTS.md                                           guidance for AI agents worki
 ## Notes on the setup
 
 - **Spring Boot 4 renamed the starters.** This project uses `spring-boot-starter-webmvc` (not `-web`) and `spring-boot-starter-webmvc-test` plus `spring-boot-starter-actuator-test` (not `spring-boot-starter-test`). Adding the Boot 3 names pulls in a duplicate legacy stack.
+- **Virtual threads are on.** `spring.threads.virtual.enabled: true` makes Tomcat serve requests on `java.lang.VirtualThread` instead of the platform-thread pool. Remove the property to go back to `org.apache.tomcat.util.threads.TaskThread`.
 - **The package name contains an underscore** (`jvacloud.spring_boot_java_template`). It is deliberate: Spring Initializr rejected the hyphenated artifact name. Renaming it touches the package, both source trees, `group` and `settings.gradle.kts`.
 - **No CI, no linter/formatter.** There are no workflows in this repo, so the coverage gate only guards local builds.
 

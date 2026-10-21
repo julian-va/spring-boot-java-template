@@ -34,8 +34,16 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 }
 
-// The bootstrap class only holds main(), so it is excluded from coverage.
-val jacocoExcludes = listOf("**/SpringBootJavaTemplateApplication.class")
+// Excluded from coverage: bootstrap plus data holders with no business logic.
+val jacocoExcludes = listOf(
+	"**/SpringBootJavaTemplateApplication.class",
+	// Datos puros de las capas de infraestructura
+	"**/infrastructure/entryPoints/**/dto/**",
+	"**/infrastructure/providers/jpa/entities/**",
+	"**/infrastructure/config/**",
+	// Excepciones de dominio: solo constructores
+	"**/domain/model/exception/**",
+)
 
 tasks.test {
 	finalizedBy(tasks.jacocoTestReport)

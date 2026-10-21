@@ -1,7 +1,7 @@
 ---
 name: java-backend
 description: Write, refactor and review Java/Spring Boot backend code following hexagonal architecture, constructor injection, JUnit 5 + AssertJ testing and explicit error handling.
-version: 0.2.1
+version: 0.2.2
 tags: [java, backend, spring, guidelines]
 ---
 
@@ -72,7 +72,7 @@ Example output schema (JSON):
   - **Domain (Core):** Entities, value objects, domain services and domain exceptions — pure Java, no framework types.
   - **Domain Use Cases:** Use-case interfaces and implementations. Orchestrate domain objects and call gateways.
   - **Domain Gateways:** Interfaces (outbound ports) for external resources like repositories, email services, etc.
-  - **Infrastructure (Adapters):** Implementations of gateways (driven-adapters) and REST controllers (entry-points). Keep these implementations in `infrastructure` packages.
+  - **Infrastructure (Adapters):** Implementations of gateways (drivenAdapters) and REST controllers (entryPoints). Keep these implementations in `infrastructure` packages.
   - **Framework & Drivers:** Spring, JPA, web servers, DB drivers — keep these at the outermost layer.
 
 - Dependency rule: code dependencies must point inward. Inner layers (domain, use-cases) must not depend on adapters or framework types.
@@ -85,7 +85,7 @@ Example output schema (JSON):
 
 - Mapping and boundaries:
   - Keep DTOs, REST models and mappers inside adapter layers; convert to/from domain objects at the boundary.
-  - Do not leak framework-specific types (e.g., `Entity`, `@Entity`, Spring `HttpServletRequest`) into domain/use-case packages.
+  - Do not leak framework-specific types (e.g., `Entity`, `@Entity`, Spring `HttpServletRequest`) into domain/usecase packages.
 
 - Example package layout (hexagonal style):
   - `com.example.domain.model` — entities, value objects, domain exceptions
@@ -208,7 +208,7 @@ class UserServiceTest {
 
 When asked to implement or modify code, the agent must return a short checklist containing:
 
-1. Affected layer(s) (entry-point/use-case/domain-model/gateway/driven-adapter)
+1. Affected layer(s) (entryPoints/usecase/domain.model/gateway/drivenAdapters)
 2. Chosen abstraction(s) and DTOs/entities
 3. Design validation vs. rules above (list any rule exceptions)
 4. Use cases and gateways affected, mapper responsibilities (DTO -> domain)
@@ -257,13 +257,13 @@ user-management/
 │       └── PasswordEncoderGateway.java
 │
 └── infrastructure/
-    ├── driven-adapters/
-    │   ├── jpa-repository/
+    ├── drivenAdapters/
+    │   ├── jpaRepository/
     │   │   ├── UserRepositoryAdapter.java
     │   │   └── mapper/
     │   │       └── UserMapper.java
     │   │
-    │   ├── email-sender/
+    │   ├── emailSender/
     │   │   └── EmailServiceAdapter.java
     │   │
     │   └── security/
@@ -285,8 +285,8 @@ user-management/
     │   └── bcrypt/
     │       └── BCryptProvider.java
     │
-    ├── entry-points/
-    │   └── api-rest/
+    ├── entryPoints/
+    │   └── apiRest/
     │       ├── UserController.java
     │       ├── exception/
     │       │   └── ApiExceptionHandler.java
@@ -317,7 +317,7 @@ src/main/java/com/example
 src/test/java/com/example
 ```
 
-Sample flow (entry-points -> use case -> gateway -> driven-adapters):
+Sample flow (entryPoints -> use case -> gateway -> drivenAdapters):
 
 Use case interface (domain/usecase):
 
@@ -531,5 +531,6 @@ class ArchitectureTest {
 
 ## Change log
 
+- 0.2.2: Use camelCase package names in the tree diagram
 - 0.2.1: Target Java 25 and Gradle 9.x for this project
 - 0.2.0: Added metadata, machine-readable fields, examples, CI skeleton

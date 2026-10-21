@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Single-module Spring Boot 4.1.1 template: Java 25, Gradle Kotlin DSL (`build.gradle.kts`). No CI, no linter/formatter, no README, no LICENSE — don't look for or assume these exist.
+Single-module Spring Boot 4.1.1 template: Java 25, Gradle Kotlin DSL (`build.gradle.kts`). No CI, no linter/formatter, no LICENSE — don't look for or assume these exist.
 
 ## Commands
 

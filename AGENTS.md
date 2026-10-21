@@ -11,6 +11,13 @@ Always use the wrapper; a bare `gradle` resolves a different version on this mac
 - One test class: `./gradlew test --tests "jvacloud.spring_boot_java_template.SpringBootJavaTemplateApplicationTests"`
 - Run app: `./gradlew bootRun` (actuator at `/actuator`; no `management.*` config exists yet)
 
+## Coverage (JaCoCo)
+
+- `./gradlew check` — and therefore `build` — runs `jacocoTestCoverageVerification` with an 80% instruction minimum, so adding a class without tests fails the build.
+- `**/SpringBootJavaTemplateApplication.class` is excluded on purpose. While it is the only class the bundle is empty and the gate passes vacuously; it starts enforcing as soon as any other class exists.
+- Report: `build/reports/jacoco/test/html/index.html` (HTML + XML, gitignored).
+- `lombok.config` enables `lombok.addLombokGeneratedAnnotation` so JaCoCo filters Lombok-generated methods. Removing it makes getters/builders count as untested.
+
 ## Spring Boot 4 renamed these starters — don't "correct" them
 
 Boot 3 / most examples online use names that are wrong here. This project verifiably builds with:

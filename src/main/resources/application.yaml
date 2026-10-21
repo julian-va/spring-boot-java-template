@@ -1,3 +1,6 @@
 spring:
   application:
     name: spring-boot-java-template
+  threads:
+    virtual:
+      enabled: true

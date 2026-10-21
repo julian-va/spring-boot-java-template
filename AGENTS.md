@@ -9,12 +9,13 @@ Always use the wrapper; a bare `gradle` resolves a different version on this mac
 - Build (compiles + tests): `./gradlew build`
 - All tests: `./gradlew test`
 - One test class: `./gradlew test --tests "jvacloud.spring_boot_java_template.SpringBootJavaTemplateApplicationTests"`
-- Run app: `./gradlew bootRun` (actuator at `/actuator`; no `management.*` config exists yet)
+- Run app: `./gradlew bootRun` — actuator at `/actuator/health`, OpenAPI at `/v3/api-docs`, Swagger UI at `/swagger-ui.html`. No `management.*` config exists yet.
 
 ## Coverage (JaCoCo)
 
 - `./gradlew check` — and therefore `build` — runs `jacocoTestCoverageVerification` with an 80% instruction minimum, so adding a class without tests fails the build.
-- `**/SpringBootJavaTemplateApplication.class` is excluded on purpose. While it is the only class the bundle is empty and the gate passes vacuously; it starts enforcing as soon as any other class exists.
+- `**/SpringBootJavaTemplateApplication.class` and data-only code are excluded on purpose (see `jacocoExcludes` in `build.gradle.kts`): DTOs under `infrastructure/entryPoints/**/dto`, JPA entities under `infrastructure/providers/jpa/entities`, `infrastructure/config`, and `domain/model/exception`.
+- The bootstrap class is still the only main class, so the bundle is empty and the gate passes vacuously. It starts enforcing as soon as a **non-excluded** class exists.
 - Report: `build/reports/jacoco/test/html/index.html` (HTML + XML, gitignored).
 - `lombok.config` enables `lombok.addLombokGeneratedAnnotation` so JaCoCo filters Lombok-generated methods. Removing it makes getters/builders count as untested.
 
@@ -27,6 +28,10 @@ Boot 3 / most examples online use names that are wrong here. This project verifi
 
 Adding the Boot 3 names pulls in a duplicate legacy stack.
 
+## Springdoc is pinned by hand
+
+`springdoc-openapi-starter-webmvc-ui:3.1.1` is explicit because the Spring Boot BOM does not manage it, and the 2.x line targets Boot 3. Don't drop the version or "fix" it to 2.x. `OpenApiDocumentationTests` fails if `/v3/api-docs` stops responding, so a Boot upgrade that breaks springdoc surfaces as a test failure.
+
 ## Package name is intentionally odd
 
 `jvacloud.spring_boot_java_template` contains an underscore because Initializr rejected the hyphenated artifact name; `HELP.md` explains this but is untracked (listed in `.gitignore`). Renaming it touches the package, both source trees, `group`, and `settings.gradle.kts` — ask the user first instead of treating it as cleanup.
@@ -35,6 +40,11 @@ Adding the Boot 3 names pulls in a duplicate legacy stack.
 
 - JDK 25 is pinned via `java.toolchain`. It must already be installed (SDKMAN `current` here); `settings.gradle.kts` has no foojay toolchain resolver, so Gradle fails the build rather than downloading a JDK.
 - Lombok is wired for main *and* test annotation processing (`compileOnly`/`annotationProcessor` plus the `test*` variants). Any new annotation processor needs the same four entries or tests won't compile.
+- `build.gradle.kts` is intentionally kept free of comments; don't add explanatory comments to it.
+
+## Runtime config
+
+- `spring.threads.virtual.enabled: true` in `application.yaml`: Tomcat serves requests on virtual threads. `ThreadLocal` state (including Spring Security's `SecurityContext`) is not inherited by work handed to another executor; propagate it explicitly in `@Async` or custom executors.
 
 ## Skills
 

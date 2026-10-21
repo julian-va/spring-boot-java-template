@@ -1,6 +1,6 @@
 ---
 name: security
-description: Apply backend and frontend security practices: OWASP Top 10, input validation, authn/authz, secrets management, secure headers, SCA/SAST/DAST scanning and a security PR checklist.
+description: Apply backend and frontend security practices covering OWASP Top 10, input validation, authn/authz, secrets management, secure headers, SCA/SAST/DAST scanning and a security PR checklist.
 version: 0.1.0
 tags: [security, backend, frontend, best-practices]
 ---

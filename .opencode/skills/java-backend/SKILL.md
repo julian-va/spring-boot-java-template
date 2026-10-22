@@ -1,7 +1,7 @@
 ---
 name: java-backend
 description: Write, refactor and review Java/Spring Boot backend code following hexagonal architecture, constructor injection, JUnit 5 + AssertJ testing and explicit error handling.
-version: 0.3.1
+version: 0.3.2
 tags: [java, backend, spring, guidelines]
 ---
 
@@ -516,37 +516,82 @@ jobs:
 - Method-length rule can be relaxed when a refactor is documented in PR description
 - Mockito allowed for legacy code where dependency inversion is impractical
 
-## Architecture verification (optional)
+## Architecture verification (ArchUnit)
 
-- Use ArchUnit to assert that package dependencies point inward. Example tests:
+- The template ships `ArchitectureTest` in `src/test/java`, with the dependency rule encoded as tests.
+- ArchUnit is test-only. The Spring Boot BOM does not manage it, so the version is pinned:
+  `testImplementation("com.tngtech.archunit:archunit-junit6:1.5.1")`
+  Use `archunit-junit6`, not `archunit-junit5`: Spring Boot 4 runs JUnit 6, and the JUnit 5 artifact targets the previous platform.
+- `@AnalyzeClasses` points at the base package and excludes test classes:
+  `@AnalyzeClasses(packages = "com.example", importOptions = ImportOption.DoNotIncludeTests.class)`
+  In this template the base package is `jvacloud.spring_boot_java_template`.
+- Add `.allowEmptyShould(true)` to every rule while the target packages are empty. Without it ArchUnit fails with "failed to check any classes"; once a class exists, the rule is enforced normally.
+- Run only the architecture tests: `./gradlew test --tests "*ArchitectureTest"`.
+
+Rules that encode the dependency rule:
+
+- `domain` must not depend on `infrastructure`.
+- `infrastructure.provider` must not depend on `domain` (a provider is a technical client).
+- `domain.usecase` may only depend on `domain`, the JDK, SLF4J and Spring stereotype/transaction annotations.
+- `infrastructure.entrypoint` must not depend on `adapter` or `provider` (controllers call use cases).
+- `adapter` is the only layer allowed to depend on both `domain` and `provider`.
 
 ```java
-@AnalyzeClasses(packages = "com.example")
+import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchRule;
+
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+
+@AnalyzeClasses(
+    packages = "com.example",
+    importOptions = ImportOption.DoNotIncludeTests.class
+)
 class ArchitectureTest {
 
   @ArchTest
   static final ArchRule domain_should_not_depend_on_infrastructure =
-    noClasses().that().resideInAPackage("..domain..")
-      .should().dependOnClassesThat().resideInAPackage("..infrastructure..");
+      noClasses().that().resideInAPackage("..domain..")
+          .should().dependOnClassesThat().resideInAPackage("..infrastructure..")
+          .allowEmptyShould(true);
 
   @ArchTest
   static final ArchRule use_cases_should_only_depend_on_domain =
-    classes().that().resideInAPackage("..domain.usecase..")
-      .should().onlyDependOnClassesThat()
-      .resideInAnyPackage("..domain..", "java..", "org.slf4j..");
+      classes().that().resideInAPackage("..domain.usecase..")
+          .should().onlyDependOnClassesThat()
+          .resideInAnyPackage(
+              "..domain..",
+              "java..",
+              "org.slf4j..",
+              "org.springframework.stereotype..",
+              "org.springframework.transaction.annotation.."
+          )
+          .allowEmptyShould(true);
 
   @ArchTest
   static final ArchRule providers_should_not_depend_on_domain =
-    noClasses().that().resideInAPackage("..infrastructure.provider..")
-      .should().dependOnClassesThat().resideInAPackage("..domain..");
+      noClasses().that().resideInAPackage("..infrastructure.provider..")
+          .should().dependOnClassesThat().resideInAPackage("..domain..")
+          .allowEmptyShould(true);
+
+  @ArchTest
+  static final ArchRule entrypoints_should_not_depend_on_adapters_or_providers =
+      noClasses().that().resideInAPackage("..infrastructure.entrypoint..")
+          .should().dependOnClassesThat()
+          .resideInAnyPackage("..infrastructure.adapter..", "..infrastructure.provider..")
+          .allowEmptyShould(true);
 }
 ```
 
-## CI: optional integration and architecture checks
+- Read failures as dependency directions: the message names the origin class, the target class and the offending call or field. Move the behaviour to the correct layer (for example, a controller calls a use case, never a provider) instead of weakening the rule or expanding its allowlist.
+- To prove a rule is active, temporarily add a class that violates it and confirm the test fails; delete the class afterwards.
 
-- Recommended CI extensions:
-  - Add an optional `integration` job using Testcontainers for DB-backed flows.
-  - Add an `architecture-check` job that runs ArchUnit tests to ensure dependency rules.
+## CI: optional integration checks
+
+- The `build` job already runs the ArchUnit tests with the rest of the unit tests.
+- Recommended CI extension: add an optional `integration` job using Testcontainers for DB-backed flows.
 
 ## Transactions & AOP
 
@@ -558,6 +603,7 @@ class ArchitectureTest {
 
 ## Change log
 
+- 0.3.2: ArchUnit in the template (`archunit-junit6`), empty-selection handling and the four dependency rules with `allowEmptyShould(true)`
 - 0.3.1: Prohibit `var` (explicit types only), require `java.util.Objects` for null handling and `java.util.Collections` helpers (no `CollectionsUtil` in the JDK)
 - 0.3.0: Lowercase singular packages (`entrypoint`, `adapter`, `provider`), adapter/provider boundary rule, fixed external adapter example and ArchUnit provider rule
 - 0.2.2: Use camelCase package names in the tree diagram

@@ -1,7 +1,7 @@
 ---
 name: java-backend
 description: Write, refactor and review Java/Spring Boot backend code following hexagonal architecture, constructor injection, JUnit 5 + AssertJ testing and explicit error handling.
-version: 0.3.0
+version: 0.3.1
 tags: [java, backend, spring, guidelines]
 ---
 
@@ -59,9 +59,27 @@ Example output schema (JSON):
 
 - Follow clean code principles and meaningful naming
 - Prefer immutability and small value objects (records)
+- Never use `var`: declare the explicit type everywhere, including locals, loop variables and try-with-resources
+  - `CreateUserCommand command = mapper.toCommand(dto);` — not `var command = ...`
+  - `for (User user : users) { ... }` — not `for (var user : users)`
 - One public class per file
 - Max method length: 30 lines (exceptions allowed with justification)
 - Keep methods focused and testable
+
+---
+
+## Null Handling and Collections
+
+- Validate nullability with `java.util.Objects`, not ad-hoc comparisons:
+  - `Objects.requireNonNull(value, "message")` for constructor and public method arguments.
+  - `Objects.requireNonNullElse(value, fallback)` / `Objects.requireNonNullElseGet(value, supplier)` when a default value is valid.
+  - `Objects.isNull(value)` / `Objects.nonNull(value)` in conditions and predicates instead of `value == null` / `value != null`.
+  - `Objects.equals(a, b)` for null-safe equality and `Objects.hash(...)` for hash codes.
+  - `Objects.toString(value, fallback)` when building messages or logs.
+  - `Objects.checkIndex(index, length)`, `Objects.checkFromToIndex(from, to, length)` and `Objects.checkFromIndexSize(from, size, length)` for index and range validation.
+- Use `java.util.Collections` for collection helpers: `emptyList()`, `emptySet()`, `emptyMap()`, `singletonList()`, `unmodifiableList()`, `unmodifiableMap()`, `frequency()` and `sort()`.
+  - The JDK has **no `CollectionsUtil`** class. If the project already uses Apache Commons Collections, the helper is `org.apache.commons.collections4.CollectionUtils` (`isEmpty`, `isNotEmpty`, `emptyIfNull`, ...); Guava offers `Collections2` and `Iterables`. Do not add a dependency just for these helpers.
+- Return an empty collection instead of `null`; never return `null` for a collection or array.
 
 ---
 
@@ -215,8 +233,8 @@ class UserServiceTest {
   @Test
   void createUser_savesAndReturnsId() {
     when(repo.save(any())).thenReturn(new User(1L, "Alice"));
-    var dto = new CreateUserDto("Alice", "a@example.com");
-    var result = service.createUser(dto);
+    CreateUserDto dto = new CreateUserDto("Alice", "a@example.com");
+    User result = service.createUser(dto);
     assertThat(result.getId()).isEqualTo(1L);
   }
 }
@@ -242,6 +260,7 @@ When asked to implement or modify code, the agent must return a short checklist 
 3. Design validation vs. rules above (list any rule exceptions)
 4. Use cases and gateways affected, mapper responsibilities (DTO -> domain)
 5. Dependency validation: confirm no inward-dependencies are violated, and that `provider` does not import `domain`
+6. Explicit types and null handling: no `var`, `Objects` for null validation, empty collections instead of `null`
 
 Example response the agent must produce before code:
 
@@ -371,8 +390,8 @@ public class CreateUserUseCaseImpl implements CreateUserUseCase {
 
   @Override
   public long create(CreateUserCommand command) {
-    var user = User.of(command.name(), command.email());
-    var saved = gateway.save(user);
+    User user = User.of(command.name(), command.email());
+    User saved = gateway.save(user);
     return saved.getId();
   }
 }
@@ -402,7 +421,7 @@ public class UserController {
 
   @PostMapping
   public ResponseEntity<Map<String, Long>> create(@RequestBody CreateUserRequest dto) {
-    var cmd = mapper.toCommand(dto);
+    CreateUserCommand cmd = mapper.toCommand(dto);
     long id = createUser.create(cmd);
     return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("id", id));
   }
@@ -433,6 +452,7 @@ import com.example.domain.gateway.UserGateway;
 import com.example.domain.model.User;
 import com.example.infrastructure.adapter.jpa.mapper.UserMapper;
 import com.example.infrastructure.provider.jpa.UserJpaRepository;
+import com.example.infrastructure.provider.jpa.entity.UserEntity;
 import org.springframework.stereotype.Component;
 import java.util.Optional;
 
@@ -448,8 +468,8 @@ public class UserRepositoryAdapter implements UserGateway {
 
   @Override
   public User save(User user) {
-    var entity = mapper.toEntity(user);
-    var saved = jpaRepository.save(entity);
+    UserEntity entity = mapper.toEntity(user);
+    UserEntity saved = jpaRepository.save(entity);
     return mapper.toDomain(saved);
   }
 
@@ -459,8 +479,6 @@ public class UserRepositoryAdapter implements UserGateway {
   }
 }
 ```
-
----
 
 ---
 
@@ -540,6 +558,7 @@ class ArchitectureTest {
 
 ## Change log
 
+- 0.3.1: Prohibit `var` (explicit types only), require `java.util.Objects` for null handling and `java.util.Collections` helpers (no `CollectionsUtil` in the JDK)
 - 0.3.0: Lowercase singular packages (`entrypoint`, `adapter`, `provider`), adapter/provider boundary rule, fixed external adapter example and ArchUnit provider rule
 - 0.2.2: Use camelCase package names in the tree diagram
 - 0.2.1: Target Java 25 and Gradle 9.x for this project

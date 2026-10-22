@@ -14,7 +14,7 @@ Always use the wrapper; a bare `gradle` resolves a different version on this mac
 ## Coverage (JaCoCo)
 
 - `./gradlew check` — and therefore `build` — runs `jacocoTestCoverageVerification` with an 80% instruction minimum, so adding a class without tests fails the build.
-- `**/SpringBootJavaTemplateApplication.class` and data-only code are excluded on purpose (see `jacocoExcludes` in `build.gradle.kts`): DTOs under `infrastructure/entryPoints/**/dto`, JPA entities under `infrastructure/providers/jpa/entities`, `infrastructure/config`, and `domain/model/exception`.
+- `**/SpringBootJavaTemplateApplication.class` and data-only code are excluded on purpose (see `jacocoExcludes` in `build.gradle.kts`): DTOs under `infrastructure/entrypoint/**/dto`, JPA entities under `infrastructure/provider/jpa/entity`, `infrastructure/config`, and `domain/exception`.
 - The bootstrap class is still the only main class, so the bundle is empty and the gate passes vacuously. It starts enforcing as soon as a **non-excluded** class exists.
 - Report: `build/reports/jacoco/test/html/index.html` (HTML + XML, gitignored).
 - `lombok.config` enables `lombok.addLombokGeneratedAnnotation` so JaCoCo filters Lombok-generated methods. Removing it makes getters/builders count as untested.

@@ -37,10 +37,10 @@ tasks.withType<Test> {
 
 val jacocoExcludes = listOf(
 	"**/SpringBootJavaTemplateApplication.class",
-	"**/infrastructure/entryPoints/**/dto/**",
-	"**/infrastructure/providers/jpa/entities/**",
+	"**/infrastructure/entrypoint/**/dto/**",
+	"**/infrastructure/provider/jpa/entity/**",
 	"**/infrastructure/config/**",
-	"**/domain/model/exception/**",
+	"**/domain/exception/**",
 )
 
 tasks.test {
